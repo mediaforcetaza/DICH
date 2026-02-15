@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>DIDOUCH LOVES DIDOCHA 🥵</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+    --bg1: rgba(15,15,15,0.7);
+    --bg2: rgba(28,28,30,0.7);
+    --card-bg: rgba(0,0,0,0.6);
+    --text: #fff;
+    --primary: #0a84ff;
+    --accent: #ff375f;
+    --success: #30d158;
+    --danger: #ff3b30;
+}
+body.light {
+    --bg1: rgba(242,242,247,0.6);
+    --bg2: rgba(255,255,255,0.6);
+    --card-bg: rgba(0,0,0,0.3);
+    --text: #111;
+}
+body {
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: 
+        linear-gradient(135deg,var(--bg1),var(--bg2)),
+        url('https://i.pinimg.com/736x/4d/fa/47/4dfa47acbb2345b54bfeee5293783595.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: var(--text);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    min-height:100vh;
+    transition: all 0.4s ease;
+    padding:20px 10px;
+}
+h2,h3 { margin:10px 0; }
+button {
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    border:none;
+    border-radius:18px;
+    padding:12px 20px;
+    margin:6px 0;
+    transition: transform 0.2s;
+}
+button:active { transform: scale(0.95); }
+.card {
+    width:90%;
+    max-width:400px;
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding:15px;
+    margin:15px 0;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    backdrop-filter: blur(15px);
+    text-align:center;
+    color: var(--text);
+}
+input {
+    width:80%;
+    padding:10px;
+    border-radius:15px;
+    border:none;
+    margin:8px 0;
+    font-size:14px;
+    text-align:center;
+}
+button.primary { background: linear-gradient(135deg,var(--primary),#0066ff); color:white; }
+button.accent { background: linear-gradient(135deg,var(--accent),#ff9f0a); color:white; }
+button.success { background: linear-gradient(135deg,var(--success),#28cd41); color:white; }
+button.danger { background: linear-gradient(135deg,var(--danger),#ff6b6b); color:white; }
+
+.display-box {
+    background: rgba(255,255,255,0.1);
+    padding:15px;
+    border-radius:15px;
+    margin-top:12px;
+    min-height:50px;
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease forwards;
+}
+@keyframes fadeIn {
+    0% { opacity: 0; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+img { max-width:100%; border-radius:15px; margin-top:10px; }
+</style>
+</head>
+<body class="dark">
+
+<h2>DIDOUCH LOVES DIDOCHA 🥵</h2>
+<button class="accent" id="modeBtn" onclick="toggleMode()">Light</button>
+
+<div class="card">
+<h3 id="timer">⏳ 00:00</h3>
+<button class="primary" onclick="startCountdown()">Start Countdown</button>
+<button class="danger" onclick="resetTimer()">Reset Timer</button>
+</div>
+
+<div class="card">
+<h3>📸 Add Positions</h3>
+<input type="file" accept="image/*" multiple onchange="addPositions(event)">
+<br><br>
+<button class="accent" onclick="pickRandomPosition()">🔥 Pick Random Position</button>
+<button class="danger" onclick="clearPositions()">🗑 Clear Positions</button>
+<div class="display-box" id="positionDisplay">
+<h3>💋 Selected Position:</h3>
+<div id="selectedPosition">None yet...</div>
+</div>
+</div>
+
+<div class="card">
+<h3>➕ Add Dares</h3>
+<input type="text" id="dareInput" placeholder="Enter dare">
+<button class="success" onclick="addDare()">Add Dare</button>
+<br><br>
+<button class="accent" onclick="pickRandomDare()">🎲 Pick Random Dare</button>
+<button class="danger" onclick="clearDares()">🗑 Clear Dares</button>
+<div class="display-box" id="dareDisplay">
+<h3>🔥 Selected Dare:</h3>
+<p id="selectedDare">None yet...</p>
+</div>
+</div>
+
+<div class="card">
+<h3>🎵 Music</h3>
+<button class="success" onclick="uploadMusic()">➕ Upload Songs</button>
+<button class="primary" onclick="toggleMusic()">▶ / ⏸ Play/Pause</button>
+<button class="accent" onclick="prevSong()">⏮ Prev</button>
+<button class="accent" onclick="nextSong()">⏭ Next</button>
+<button class="danger" onclick="clearSongs()">🗑 Clear Songs</button>
+<audio id="music"></audio>
+</div>
+
+<audio id="timerSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_0b6df3d14c.mp3?filename=people-stop-rest-84947.mp3"></audio>
+
+<script>
+/* ================= MODE TOGGLE ================= */
+function toggleMode() { 
+    const body = document.body;
+    const btn = document.getElementById("modeBtn");
+
+    body.classList.toggle("light");
+    body.classList.toggle("dark");
+
+    if(body.classList.contains("light")){
+        btn.innerText = "Dark";
+    } else {
+        btn.innerText = "Light";
+    }
+}
+
+/* ================= COUNTDOWN ================= */
+let countdownInterval;
+let countdownSeconds = 0;
+const timerSound = document.getElementById("timerSound");
+
+function startCountdown() {
+    resetTimer();
+    let input = prompt("Set countdown in seconds:");
+    countdownSeconds = parseInt(input);
+    if(isNaN(countdownSeconds)||countdownSeconds<=0) return alert("Enter valid number!");
+    updateTimerDisplay(countdownSeconds);
+    countdownInterval = setInterval(()=>{
+        countdownSeconds--;
+        updateTimerDisplay(countdownSeconds);
+        if(countdownSeconds<=0){
+            clearInterval(countdownInterval);
+            timerSound.play().catch(()=>{});
+            if(navigator.vibrate){
+                navigator.vibrate([300,200,300,200,500]);
+            }
+            alert("⏰ Time's up!");
+        }
+    },1000);
+}
+
+function updateTimerDisplay(sec){
+    let min=Math.floor(sec/60);
+    let s=sec%60;
+    document.getElementById("timer").innerText="⏳ "+String(min).padStart(2,'0')+":"+String(s).padStart(2,'0');
+}
+
+function resetTimer(){ 
+    clearInterval(countdownInterval); 
+    countdownSeconds=0; 
+    document.getElementById("timer").innerText="⏳ 00:00"; 
+}
+
+/* ================= MUSIC ================== */
+let playlist = JSON.parse(localStorage.getItem("playlist")) || [];
+let currentIndex=0, isPlaying=false;
+const music=document.getElementById("music");
+
+// Load saved playlist on page load
+window.addEventListener("load", () => {
+    if(playlist.length>0){
+        // set src to first song but don't play
+        music.src = playlist[0].url;
+    }
+});
+
+music.addEventListener("ended", nextSong);
+
+function savePlaylist(){
+    localStorage.setItem("playlist", JSON.stringify(playlist));
+}
+
+function uploadMusic(){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'audio/*';
+    input.multiple = true;
+
+    input.onchange = function(e){
+        for(let f of e.target.files){
+            const reader = new FileReader();
+            reader.onload = function(ev){
+                playlist.push({name:f.name, url:ev.target.result});
+                savePlaylist();
+            }
+            reader.readAsDataURL(f);
+        }
+    };
+    input.click();
+}
+
+function loadSong(i){ 
+    if(!playlist[i]) return;
+    currentIndex=i; 
+    music.src=playlist[i].url; 
+    music.play(); 
+    isPlaying=true; 
+}
+
+function toggleMusic(){ 
+    if(!playlist.length) return alert("Upload songs first!"); 
+    if(music.paused){
+        // if nothing loaded yet, start first song
+        if(!music.src && playlist.length>0){
+            loadSong(0);
+        } else {
+            music.play();
+        }
+        isPlaying=true;
+    } else {
+        music.pause();
+        isPlaying=false;
+    } 
+}
+
+function nextSong(){ 
+    if(!playlist.length) return; 
+    currentIndex=(currentIndex+1)%playlist.length; 
+    loadSong(currentIndex); 
+}
+
+function prevSong(){ 
+    if(!playlist.length) return; 
+    currentIndex=(currentIndex-1+playlist.length)%playlist.length; 
+    loadSong(currentIndex); 
+}
+
+function clearSongs(){
+    if(confirm("Delete all saved songs?")){
+        playlist=[]; music.pause(); music.src="";
+        localStorage.removeItem("playlist");
+    }
+}
+
+/* ================= DARES ================== */
+let dares = JSON.parse(localStorage.getItem("dares")) || [];
+let usedDares=[];
+
+function saveDares(){
+    localStorage.setItem("dares", JSON.stringify(dares));
+}
+
+function addDare(){
+    const input=document.getElementById("dareInput");
+    const text=input.value.trim(); 
+    if(!text) return;
+    let owner=prompt("Who is this dare for? (said/majda)");
+    if(!owner) return;
+    owner=owner.toLowerCase();
+    if(owner!=="said"&&owner!=="majda") return alert("Type 'said' or 'majda'");
+    dares.push({text:text, owner:owner}); 
+    saveDares();
+    input.value="";
+}
+
+function pickRandomDare(){
+    if(!dares.length) return document.getElementById("selectedDare").innerText="No dares added!";
+    if(usedDares.length===dares.length) usedDares=[];
+    let available=dares.filter(d=>!usedDares.includes(d));
+    let rand=available[Math.floor(Math.random()*available.length)];
+    usedDares.push(rand);
+    document.getElementById("selectedDare").innerText=rand.owner.toUpperCase()+": "+rand.text;
+}
+
+/* ================= POSITIONS ================== */
+let positions = JSON.parse(localStorage.getItem("positions")) || [];
+let usedPositions=[];
+
+function savePositions(){
+    localStorage.setItem("positions", JSON.stringify(positions));
+}
+
+function addPositions(e){
+    for(let f of e.target.files){
+        const reader=new FileReader();
+        reader.onload=function(ev){ 
+            positions.push(ev.target.result);
+            savePositions();
+        }
+        reader.readAsDataURL(f);
+    }
+}
+
+function pickRandomPosition(){
+    if(!positions.length) return document.getElementById("selectedPosition").innerText="No images uploaded!";
+    if(usedPositions.length===positions.length) usedPositions=[];
+    let available=positions.filter(p=>!usedPositions.includes(p));
+    let rand=available[Math.floor(Math.random()*available.length)];
+    usedPositions.push(rand);
+    document.getElementById("selectedPosition").innerHTML = "<img src='"+rand+"' class='fade-in'>";
+}
+
+/* ================= CLEAR BUTTONS ================= */
+function clearPositions(){
+    if(confirm("Delete all saved positions?")){
+        positions=[]; usedPositions=[]; localStorage.removeItem("positions");
+        document.getElementById("selectedPosition").innerText="None yet...";
+    }
+}
+
+function clearDares(){
+    if(confirm("Delete all saved dares?")){
+        dares=[]; usedDares=[]; localStorage.removeItem("dares");
+        document.getElementById("selectedDare").innerText="None yet...";
+    }
+}
+</script>
+
+</body>
+</html>
